@@ -1,0 +1,233 @@
+#include "led.h"
+#include "delay.h"
+#include "key.h"
+#include "sys.h"
+#include "usart.h"
+#include "nRF24L01_API.h"
+#include "adc.h"
+/************************************************
+ ALIENTEK精英STM32开发板实验31
+ MPU6050六轴传感器 实验
+ 技术支持：www.openedv.com
+ 淘宝店铺：http://eboard.taobao.com
+ 关注微信公众平台微信号："正点原子"，免费获取STM32资料。
+ 广州市星翼电子科技有限公司
+ 作者：正点原子 @ALIENTEK
+************************************************/
+
+const u8 TX_ADDRESS[TX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01}; //发送地址
+const u8 RX_ADDRESS[RX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01};
+const u16 bigmax=3800;
+const u16 midmax=3000;
+const u16 midmin=1000;
+const u16 bigmin=200;
+
+int main(void)
+{
+    u8 key=0,t;
+    u16 VRX=0,VRY=0,VRZ=0,index=0;
+    u16 x=0,y=0,z=0,k=0;
+    u8 tmp_buf[33]={0};
+    delay_init();	    	 //延时函数初始化
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置中断优先级分组为组2：2位抢占优先级，2位响应优先级
+    uart_init(115200);	 	//串口初始化为115200
+    LED_Init();		  			//初始化与LED连接的硬件接口
+    KEY_Init();
+    NRF24L01_Init();    		//初始化NRF24L01 			//设置字体为红色
+    Adc_Init();
+
+
+    while(NRF24L01_Check())
+    {
+        delay_ms(500);
+        LED0=!LED0;
+    }
+
+
+    NRF24L01_TX_Mode((u8*)TX_ADDRESS);
+
+    for(t=0; t<5; t++)
+    {
+
+        tmp_buf[t]='0';
+
+    }
+
+
+
+    while(1)
+    {
+        VRX = Get_Adc(5);
+        VRY = Get_Adc(6);
+        VRZ = Get_Adc(7);
+        if(tmp_buf[4]<'9')
+        {
+            tmp_buf[4]+=1;
+        }
+        else
+            tmp_buf[4]='0';
+
+
+        if(KEY_Scan(0)>0)
+            key=!key;
+
+
+        if(key==1)
+        {
+if(index!=1){           
+					tmp_buf[0]='1';
+            tmp_buf[1]='1';
+            tmp_buf[2]='1';
+            tmp_buf[3]='1';
+            NRF24L01_TxPacket(tmp_buf);
+            k=1;}
+        }//水泵转
+        else
+        {
+            tmp_buf[0]='2';
+            tmp_buf[1]='2';
+            tmp_buf[2]='2';
+            tmp_buf[3]='2';
+            NRF24L01_TxPacket(tmp_buf);
+            k=0;
+        }//水泵停
+
+
+
+        if(VRZ>=bigmax)
+        {
+            tmp_buf[0]='3';
+            tmp_buf[1]='3';
+            tmp_buf[2]='3';
+            tmp_buf[3]='3';
+            NRF24L01_TxPacket(tmp_buf);
+            z=5;
+        }//主电机快速前进
+        else if(VRZ>=midmax&&VRZ<bigmax)
+        {
+            tmp_buf[0]='4';
+            tmp_buf[1]='4';
+            tmp_buf[2]='4';
+            tmp_buf[3]='4';
+            NRF24L01_TxPacket(tmp_buf);
+            z=4;
+        }//主电机中速前进
+        else if(VRZ>=midmin&&VRZ<midmax)
+        {
+            tmp_buf[0]='5';
+            tmp_buf[1]='5';
+            tmp_buf[2]='5';
+            tmp_buf[3]='5';
+            NRF24L01_TxPacket(tmp_buf);
+            z=0;
+        }//主电机中速后退
+        else if(VRZ>=bigmin&&VRZ<midmin)
+        {
+            tmp_buf[0]='6';
+            tmp_buf[1]='6';
+            tmp_buf[2]='6';
+            tmp_buf[3]='6';
+            NRF24L01_TxPacket(tmp_buf);
+            z=3;
+        }//主电机快速后退
+        else
+        {
+            tmp_buf[0]='7';
+            tmp_buf[1]='7';
+            tmp_buf[2]='7';
+            tmp_buf[3]='7';
+            NRF24L01_TxPacket(tmp_buf);
+            z=2;
+        }//主电机停
+
+
+
+        if(VRX<bigmin&&(VRY<=5000))
+        {
+            tmp_buf[0]='1';
+            tmp_buf[1]='1';
+            tmp_buf[2]='2';
+            tmp_buf[3]='2';
+            NRF24L01_TxPacket(tmp_buf);
+            x=5,y=0;
+        }//大左转
+        else if((VRX>=bigmin&&VRX<midmin)&&(VRY<=5000))
+        {
+            tmp_buf[0]='1';
+            tmp_buf[1]='1';
+            tmp_buf[2]='3';
+            tmp_buf[3]='3';
+            NRF24L01_TxPacket(tmp_buf);
+            x=4,y=0;
+        }//中左转
+        else if((VRX>=midmax&&VRX<bigmax)&&(VRY<=5000))
+        {
+            tmp_buf[0]='1';
+            tmp_buf[1]='1';
+            tmp_buf[2]='4';
+            tmp_buf[3]='4';
+            NRF24L01_TxPacket(tmp_buf);
+            x=3,y=0;
+        }//中右转
+        else if(VRX>=bigmax&&(VRY<=5000))
+        {
+            tmp_buf[0]='1';
+            tmp_buf[1]='1';
+            tmp_buf[2]='5';
+            tmp_buf[3]='5';
+            NRF24L01_TxPacket(tmp_buf);
+            x=2,y=0;
+        }//大右转
+
+        else if((VRX>=midmin&&VRX<midmax)&&(VRY<bigmin))
+        {
+            tmp_buf[0]='2';
+            tmp_buf[1]='2';
+            tmp_buf[2]='1';
+            tmp_buf[3]='1';
+            NRF24L01_TxPacket(tmp_buf);
+            x=0,y=5;
+        }//侧电机快速前进
+        else if((VRX>=midmin&&VRX<midmax)&&(VRY>=bigmin&&VRY<midmin))
+        {
+            tmp_buf[0]='2';
+            tmp_buf[1]='2';
+            tmp_buf[2]='3';
+            tmp_buf[3]='3';
+            NRF24L01_TxPacket(tmp_buf);
+            x=0,y=4;
+        }//侧电机中速前进
+        else if((VRX>=midmin&&VRX<midmax)&&(VRY>=midmax&&VRY<bigmax))
+        {
+            tmp_buf[0]='2';
+            tmp_buf[1]='2';
+            tmp_buf[2]='4';
+            tmp_buf[3]='4';
+            NRF24L01_TxPacket(tmp_buf);
+            x=0,y=3;
+        }//侧电机中速后退
+        else if((VRX>=midmin&&VRX<midmax)&&(VRY>=bigmax))
+        {
+            tmp_buf[0]='2';
+            tmp_buf[1]='2';
+            tmp_buf[2]='5';
+            tmp_buf[3]='5';
+            NRF24L01_TxPacket(tmp_buf);
+            x=0,y=2;
+        }//侧电机快速后退
+        else if((VRX>=midmin&&VRX<midmax)&&(VRY>=midmin&&VRY<midmax))
+        {
+            tmp_buf[0]='2';
+            tmp_buf[1]='2';
+            tmp_buf[2]='6';
+            tmp_buf[3]='6';
+            NRF24L01_TxPacket(tmp_buf);
+            x=0,y=0;
+        }//侧电机停
+//				if(NRF24L01_TxPacket(tmp_buf)==TX_OK)
+//					z=9;
+        printf("VRZ=%4d,VRX=%4d,VRY=%4d,key=%d,z=%d,x=%d,y=%d,k=%d,r=%d\r\n",VRZ,VRX,VRY,key,z,x,y,k,NRF24L01_TxPacket(tmp_buf));
+    }
+}
+
+

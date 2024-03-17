@@ -1,0 +1,230 @@
+#include "led.h"
+#include "delay.h"
+#include "sys.h"
+#include "usart.h"
+#include "timer.h"
+#include "nRF24L01_API.h"
+/************************************************
+ ALIENTEK精英STM32开发板实验31
+ MPU6050六轴传感器 实验
+ 技术支持：www.openedv.com
+ 淘宝店铺：http://eboard.taobao.com
+ 关注微信公众平台微信号："正点原子"，免费获取STM32资料。
+ 广州市星翼电子科技有限公司
+ 作者：正点原子 @ALIENTEK
+************************************************/
+
+const u8 TX_ADDRESS[TX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01}; //发送地址
+const u8 RX_ADDRESS[RX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01};
+
+int main(void)
+{
+
+    u16 index=0,t=0;
+    int decode=0;
+    u8 tmp_buf[33]= {0};
+    delay_init();	    	 //延时函数初始化
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置中断优先级分组为组2：2位抢占优先级，2位响应优先级
+    uart_init(115200);	 	//串口初始化为115200
+    TIM3_PWM_Init()	;
+    TIM2_PWM_Init();
+    TIM4_PWM_Init();
+    LED_Init();		  			//初始化与LED连接的硬件接口
+    NRF24L01_Init();    		//初始化NRF24L01 			//设置字体为红色
+
+    while(NRF24L01_Check())
+    {
+        delay_ms(500);
+        LED0=!LED0;
+    }
+
+
+    NRF24L01_RX_Mode((u8*)RX_ADDRESS);
+    while (1)
+    {
+        if (NRF24L01_RxPacket(tmp_buf) == 0)//一旦接收到信息,则显示出来.
+        {
+            tmp_buf[32] = 0;//加入字符串结束符
+            decode= (tmp_buf[0]-48)*1000+(tmp_buf[1]-48)*100+(tmp_buf[2]-48)*10+(tmp_buf[3]-48);
+//					printf("decode=%4d",decode);
+            switch (decode)
+            {
+
+            case 1111://水泵转
+                if(index!=1)
+                {
+                    PumpGo();
+
+                    index=1;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 2222://水泵停
+                if(index!=2)
+                {
+                    PumpStop();
+                    index=2;
+printf("decode=%4d",decode);
+                }
+                break;
+
+            case 3333://主电机快速前进
+
+                if(index!=3)
+                {
+                    MainHGo();
+                    index=3;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 4444://主电机中速前进
+
+                if(index!=4)
+                {
+                    MainMGo();
+                    index=4;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 5555://主电机中速后退
+
+                if(index!=5)
+                {
+                    MainMBack();
+                    index=5;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 6666://主电机快速后退
+
+                if(index!=6)
+                {
+                    MainHBack();
+                    index=6;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 7777://主电机停
+
+                if(index!=7)
+                {
+                    MainStop();
+                    index=7;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 1122://大左转
+
+                if(index!=8)
+                {
+                    HLeft();
+                    index=8;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 1133://中左转
+
+                if(index!=9)
+                {
+                    MLeft();
+                    index=9;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 1144://中右转
+
+                if(index!=10)
+                {
+                    MRight();
+                    index=10;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 1155://大右转
+
+                if(index!=11)
+                {
+                    HRight();
+                    index=11;
+									printf("decode=%4d",decode);
+                }
+                break;
+            case 2211://侧电机快速前进
+
+                if(index!=12)
+                {
+                    HGo();
+                    index=12;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            case 2233://侧电机中速前进
+
+                if(index!=13)
+                {
+                    MGo();
+                    index=13;
+									printf("decode=%4d",decode);
+                }
+                break;
+            case 2244://侧电机中速后退
+
+                if(index!=14)
+                {
+                    MBack();
+                    index=14;
+									printf("decode=%4d",decode);
+                }
+                break;
+            case 2255://侧电机快速后退
+
+                if(index!=15)
+                {
+                    HBack();
+                    index=15;
+									printf("decode=%4d",decode);
+                }
+                break;
+            case 2266://侧电机停
+
+                if(index!=16)
+                {
+                    Stop();
+                    index=16;
+									printf("decode=%4d",decode);
+                }
+                break;
+
+            default:
+                index=0;
+                break;
+
+            }
+//						printf("decode=%4d",decode);
+        }
+//printf("decode=%4d\r\n",index);
+        else
+        {
+
+            delay_us(5);
+            t++;
+            if (t == 20000)//大约1s钟改变一次状态
+            {
+                t = 0;
+                LED0 = !LED0;
+            }
+
+        }
+    }
+}
+
