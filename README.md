@@ -1,4 +1,4 @@
-This is a brushless motor driven remote control ship model made by stm32 during my undergraduate study. Updating... \\
+This is a brushless motor driven remote control ship model made by stm32 during my undergraduate study. Updating... \
 ![image](https://github.com/lane-cv/ship_model/blob/master/show.gif)
 # 0. Statement
 This is a volunteer work, there's no profit involved.
