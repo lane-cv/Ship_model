@@ -20,3 +20,5 @@ Brushless electric machine $\times$ 1 ->[link](https://m.tb.cn/h.5xFyaZGT3dzLgQW
 Electronic speed controller $\times$ 1  ->[link](https://m.tb.cn/h.5xFyaZGT3dzLgQW?tk=yduOWMbDMBl) \
 Others 
 
+# 2. Hardware frame
+![image](https://github.com/lane-cv/ship_model/images/Control_hardware)
