@@ -22,3 +22,8 @@ Others
 
 # 2. Hardware frame
 ![image](https://github.com/lane-cv/ship_model/blob/master/images/Control_hardware.png)
+![image](https://github.com/lane-cv/ship_model/blob/master/images/Ship_hardware.png)
+
+# 3. Software frame
+![image](https://github.com/lane-cv/ship_model/blob/master/images/Control_software.png)
+![image](https://github.com/lane-cv/ship_model/blob/master/images/Ship_software.png)
