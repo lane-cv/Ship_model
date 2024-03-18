@@ -25,13 +25,3 @@ Remote control
 
 
 
-
-
-
-
-
-
-
-
-
-
