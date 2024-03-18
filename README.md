@@ -3,7 +3,7 @@ This is a brushless motor driven remote control ship model made by stm32 during 
 # 0. Statement
 This is a volunteer work, there's no profit involved.
 
-# 1. 
+# 1. Requirements
 
 ## 1.1 **Remote control**
 STM32F103C8T6 $\times$ 1 ->[link](https://m.tb.cn/h.5xFwGkP13reQK37?tk=Z2fjWMbFNex)
