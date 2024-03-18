@@ -21,4 +21,4 @@ Electronic speed controller $\times$ 1  ->[link](https://m.tb.cn/h.5xFyaZGT3dzLg
 Others 
 
 # 2. Hardware frame
-![image](https://github.com/lane-cv/ship_model/images/Control_hardware)
+![image](https://github.com/lane-cv/ship_model/images/Control_hardware.png)
